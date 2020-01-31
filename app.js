@@ -6,10 +6,10 @@ const path = require('path');
 let currentPage = 0;
 let currentLine = 0;
 let currentElement = null;
-currentRegion = null;
-currentProvincia = null;
-currentComuna = null;
-currentFile = null;
+let currentRegion = null;
+let currentProvincia = null;
+let currentComuna = null;
+let currentFile = null;
 let elements = [];
 
 let proccess = (err, item) => {
@@ -103,4 +103,4 @@ let proccess = (err, item) => {
     }
 }
 
-new PdfReader().parseFileItems(__dirname + "/pdf/A05101.pdf", proccess);
+new PdfReader().parseFileItems(__dirname + "/pdf/A13132.pdf", proccess);

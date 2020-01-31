@@ -103,4 +103,4 @@ let proccess = (err, item) => {
     }
 }
 
-new PdfReader().parseFileItems("./pdf/A01402.pdf", proccess);
+new PdfReader().parseFileItems(__dirname + "/pdf/A05101.pdf", proccess);

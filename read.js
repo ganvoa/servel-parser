@@ -39,11 +39,9 @@ let elements = [];
 
 text(pdf)
     .pipe(es.split())
+    .pipe(es.filterSync(line => !ignore.includes(line)))
     .pipe(es.mapSync(line => {
 
-        if (ignore.includes(line)) {
-            return;
-        }
         // Si es una página nueva
         if (line == "Página") {
             currentPage++;
@@ -60,8 +58,10 @@ text(pdf)
                 currentElement = {}
                 currentElement["nom"] = line;
             }
-            if ((currentLine - 7)%7 == 2)
+            if ((currentLine - 7)%7 == 2) {
+                currentElement["uid"] = parseInt(line.replace(/\./g, "").split("-")[0]);
                 currentElement["rut"] = line;
+            }
             if ((currentLine - 7)%7 == 3)
                 currentElement["sex"] = line;
             if ((currentLine - 7)%7 == 4)
@@ -74,35 +74,22 @@ text(pdf)
             // Hay casos en que no tienen Mesa V o M,
             // Evaluamos si el token es una M o V, si no, rellenamos
             if ((currentLine - 7)%7 == 0) {
-                if (line == "V" || line == "M") {
-                    currentElement["me2"] = line;
-                    currentElement["reg"] = currentRegion;
-                    currentElement["pro"] = currentProvincia;
-                    currentElement["com"] = currentComuna;
-                    currentElement["fil"] = currentFile;
-                    currentElement["pag"] = currentPage;
-                    elements.push(currentElement);
-                } else {
-                    currentElement["me2"] = null;
-                    currentElement["reg"] = currentRegion;
-                    currentElement["pro"] = currentProvincia;
-                    currentElement["com"] = currentComuna;
-                    currentElement["fil"] = currentFile;
-                    currentElement["pag"] = currentPage;
-                    elements.push(currentElement);
-                    currentLine++;
-                    currentElement = {}
-                    currentElement["nom"] = line;
-                }
+                currentElement["me2"] = line;
+                currentElement["reg"] = currentRegion;
+                currentElement["pro"] = currentProvincia;
+                currentElement["com"] = currentComuna;
+                currentElement["fil"] = currentFile;
+                currentElement["pag"] = currentPage;
+                elements.push(currentElement);
             }
         } else { 
-            if (currentLine == 2) {
+            if (currentLine == 3) {
                 currentRegion = line.replace(": ", "");
             }
-            if (currentLine == 4) {
+            if (currentLine == 5) {
                 currentProvincia = line.replace(": ", "");
             }
-            if (currentLine == 5) {
+            if (currentLine == 6) {
                 currentComuna = line.replace(": ", "");
             }
         }

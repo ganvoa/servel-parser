@@ -23,25 +23,29 @@ const ignore = require("./ignore.json");
 const path = require('path');
 
 // Load file contents to ArrayBuffer synchronously
-// let file = __dirname + "/pdf/A13132.pdf";
-let file = __dirname + "/pdf/A11303.pdf";
-let pdf = new Uint8Array(fs.readFileSync(file));
+//let localPath = __dirname + "/pdf/A13132.pdf";
+let localPath = __dirname + "/pdf/A11303.pdf";
+let pdf = new Uint8Array(fs.readFileSync(localPath));
 // Stream PDF text to stdout
 
+let skipComma = true;
 let currentPage = 0;
 let currentLine = 0;
 let currentElement = null;
 let currentRegion = null;
 let currentProvincia = null;
 let currentComuna = null;
-let currentFile = path.basename(file);
-let elements = [];
+let currentFile = path.basename(localPath);
+const extension = path.extname(currentFile);
+const fileName = path.basename(currentFile, extension);
+const file = fs.createWriteStream(__dirname + '/json/' + fileName +'.json');
+file.write('[');
 
 text(pdf)
-    .pipe(es.split())
-    .pipe(es.filterSync(line => !ignore.includes(line)))
-    .pipe(es.mapSync(line => {
-
+.pipe(es.split())
+.pipe(es.filterSync(line => !ignore.includes(line)))
+.pipe(es.mapSync(line => {
+    
         // Si es una página nueva
         if (line == "Página") {
             currentPage++;
@@ -51,8 +55,6 @@ text(pdf)
 
         currentLine++;
         
-        if(currentLine < 30)
-            console.log(currentLine + ' - ' + line);
         if (currentLine > 7) {
             if ((currentLine - 7)%7 == 1) {
                 currentElement = {}
@@ -71,8 +73,6 @@ text(pdf)
             if ((currentLine - 7)%7 == 6)
                 currentElement["me1"] = line;
             
-            // Hay casos en que no tienen Mesa V o M,
-            // Evaluamos si el token es una M o V, si no, rellenamos
             if ((currentLine - 7)%7 == 0) {
                 currentElement["me2"] = line;
                 currentElement["reg"] = currentRegion;
@@ -80,7 +80,10 @@ text(pdf)
                 currentElement["com"] = currentComuna;
                 currentElement["fil"] = currentFile;
                 currentElement["pag"] = currentPage;
-                elements.push(currentElement);
+                if (!skipComma)
+                    file.write(',');
+                skipComma = false;
+                file.write(JSON.stringify(currentElement));
             }
         } else { 
             if (currentLine == 3) {
@@ -94,7 +97,7 @@ text(pdf)
             }
         }
     }).on('end', () => {
-        const extension = path.extname(currentFile);
-        const fileName = path.basename(currentFile, extension);
-        fs.writeFileSync(__dirname + '/json/' + fileName +'.json', JSON.stringify(elements));
+        file.write(']');
+        file.end();
     }))
+    .pipe(process.stdout)

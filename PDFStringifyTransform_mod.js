@@ -9,30 +9,6 @@ const Transform = require('stream').Transform;
  */
 module.exports = class PDFStringifyTransform extends Transform {
 
-  /**
-   * Transform text object to string.
-   * @param {string|Object} [options]
-   * @param {string} [options.whitespace] String for replace whitespace, by defaults don't replace
-   */
-  constructor(options) {
-    if (typeof options === 'string') {
-      options = {
-        whitespace: options
-      };
-    }
-    const defaults = {
-      whitespace: false,
-      writableObjectMode: true,
-      readableObjectMode: false
-    };
-    const config = Object.assign({}, defaults, options);
-    const whitespace = config.whitespace;
-    delete config.whitespace;
-    super(config);
-
-    this.whitespace = whitespace;
-  }
-
   //noinspection JSUnusedLocalSymbols
   /**
    * Transform PDF.js text object to string

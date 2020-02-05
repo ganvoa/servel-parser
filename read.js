@@ -28,7 +28,6 @@ let localPath = __dirname + "/pdf/A11303.pdf";
 let pdf = new Uint8Array(fs.readFileSync(localPath));
 // Stream PDF text to stdout
 
-let skipComma = true;
 let currentPage = 0;
 let currentLine = 0;
 let currentElement = null;
@@ -38,66 +37,58 @@ let currentComuna = null;
 let currentFile = path.basename(localPath);
 const extension = path.extname(currentFile);
 const fileName = path.basename(currentFile, extension);
-const file = fs.createWriteStream(__dirname + '/json/' + fileName +'.json');
-file.write('[');
+const file = fs.createWriteStream(__dirname + '/json/' + fileName + '.json');
 
 text(pdf)
 .pipe(es.split())
 .pipe(es.filterSync(line => !ignore.includes(line)))
 .pipe(es.mapSync(line => {
-    
-        // Si es una página nueva
-        if (line == "Página") {
-            currentPage++;
-            currentLine = 0;
-            console.info(`Procesando página: ${currentPage}`);
-        }
 
-        currentLine++;
-        
-        if (currentLine > 7) {
-            if ((currentLine - 7)%7 == 1) {
-                currentElement = {}
-                currentElement["nom"] = line;
-            }
-            if ((currentLine - 7)%7 == 2) {
-                currentElement["uid"] = parseInt(line.replace(/\./g, "").split("-")[0]);
-                currentElement["rut"] = line;
-            }
-            if ((currentLine - 7)%7 == 3)
-                currentElement["sex"] = line;
-            if ((currentLine - 7)%7 == 4)
-                currentElement["dir"] = line;
-            if ((currentLine - 7)%7 == 5)
-                currentElement["cir"] = line;
-            if ((currentLine - 7)%7 == 6)
-                currentElement["me1"] = line;
-            
-            if ((currentLine - 7)%7 == 0) {
-                currentElement["me2"] = line;
-                currentElement["reg"] = currentRegion;
-                currentElement["pro"] = currentProvincia;
-                currentElement["com"] = currentComuna;
-                currentElement["fil"] = currentFile;
-                currentElement["pag"] = currentPage;
-                if (!skipComma)
-                    file.write(',');
-                skipComma = false;
-                file.write(JSON.stringify(currentElement));
-            }
-        } else { 
-            if (currentLine == 3) {
-                currentRegion = line.replace(": ", "");
-            }
-            if (currentLine == 5) {
-                currentProvincia = line.replace(": ", "");
-            }
-            if (currentLine == 6) {
-                currentComuna = line.replace(": ", "");
-            }
+    if (line == "Página") {
+        currentPage++;
+        currentLine = 0;
+        console.info(`Procesando página: ${currentPage}`);
+    }
+    
+    currentLine++;
+    
+    if (currentLine > 7) {
+        if ((currentLine - 7)%7 == 1) {
+            currentElement = {}
+            currentElement["nom"] = line;
         }
-    }).on('end', () => {
-        file.write(']');
-        file.end();
-    }))
-    .pipe(process.stdout)
+        if ((currentLine - 7)%7 == 2) {
+            currentElement["uid"] = parseInt(line.replace(/\./g, "").split("-")[0]);
+            currentElement["rut"] = line;
+        }
+        if ((currentLine - 7)%7 == 3)
+            currentElement["sex"] = line;
+        if ((currentLine - 7)%7 == 4)
+            currentElement["dir"] = line;
+        if ((currentLine - 7)%7 == 5)
+            currentElement["cir"] = line;
+        if ((currentLine - 7)%7 == 6)
+            currentElement["me1"] = line;
+        
+        if ((currentLine - 7)%7 == 0) {
+            currentElement["me2"] = line;
+            currentElement["reg"] = currentRegion;
+            currentElement["pro"] = currentProvincia;
+            currentElement["com"] = currentComuna;
+            currentElement["fil"] = currentFile;
+            currentElement["pag"] = currentPage;
+            return JSON.stringify(currentElement) + "\n"
+        }
+    } else { 
+        if (currentLine == 3) {
+            currentRegion = line.replace(": ", "");
+        }
+        if (currentLine == 5) {
+            currentProvincia = line.replace(": ", "");
+        }
+        if (currentLine == 6) {
+            currentComuna = line.replace(": ", "");
+        }
+    }
+}))
+.pipe(file)

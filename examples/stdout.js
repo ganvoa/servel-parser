@@ -7,7 +7,7 @@ Error: Cantidad de parámetros inválidos
 
 Ejemplo: 
 
-node examples/stdout "ArchivoServel.pdf"
+node examples/stdout "/path/to/pdf"
     `);
     process.exit(1)
 }

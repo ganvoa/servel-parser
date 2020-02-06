@@ -6,4 +6,4 @@ Pequeño script para procesar archivos de PDF grandes (a.k.a Padrón del Servel)
 - npm 6.13.4
 
 ### Cómo utilizar 
-Mirar carpeta `examples`
+Ver carpeta `examples`

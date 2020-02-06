@@ -1,10 +1,7 @@
 {
   "name": "servel-parser",
   "version": "1.0.0",
-  "description": "Scripts para transformar el Archivo del Servel a distintos formatos",
-  "scripts": {
-    "import": "node import.js"
-  },
+  "description": "Script para procesar PDFs utlizando Streams",
   "author": "gamb0a",
   "license": "ISC",
   "dependencies": {

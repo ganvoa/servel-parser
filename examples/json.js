@@ -1,3 +1,7 @@
+/**
+ * @see http://ndjson.org/
+ */
+
 const reader = require('../lib/json-reader');
 const args = process.argv.slice(2);
 

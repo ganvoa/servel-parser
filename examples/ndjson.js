@@ -11,7 +11,7 @@ Error: Cantidad de parámetros inválidos
 
 Ejemplo: 
 
-ejemplo: node examples/ndjson "/path/to/pdf" "/path/to/json/folder"
+node examples/ndjson "/path/to/pdf" "/path/to/json/folder"
     `);
     process.exit(1)
 }

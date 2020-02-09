@@ -2,7 +2,7 @@ const { Client } = require('@elastic/elasticsearch');
 const client = new Client({ node: 'http://elastic:9200' });
 const WritableBulk = require('elasticsearch-streams').WritableBulk;
 const TransformToBulk = require('elasticsearch-streams').TransformToBulk;
-const reader = require('../lib/reader')
+const reader = require('../lib/reader');
 const args = process.argv.slice(2);
 
 if (args.length !== 1) {
@@ -46,7 +46,10 @@ const run = async () => {
     await setup();
     await createIndex();
     const ws = new WritableBulk(bulkExec);
-    const toBulk = new TransformToBulk(function getIndexTypeId(doc) { return { _id: doc.uid }; });
+    const toBulk = new TransformToBulk((doc) =>  {
+        let docJson = JSON.parse(doc)
+        return { _id: docJson.uid }
+    });
     reader(pdfPath).pipe(toBulk).pipe(ws)
         .on('finish', () => {
             console.log('Fin :)');

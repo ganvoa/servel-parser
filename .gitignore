@@ -1,4 +1,4 @@
-/pdf/*.pdf
+/pdf/
 /json/*.json
 /node_modules
 pdf/README.md

@@ -4,6 +4,7 @@ const WritableBulk = require('elasticsearch-streams').WritableBulk;
 const TransformToBulk = require('elasticsearch-streams').TransformToBulk;
 const reader = require('../lib/reader');
 const args = process.argv.slice(2);
+const es = require('event-stream');
 
 if (args.length !== 1) {
     console.error(`
@@ -17,7 +18,7 @@ node examples/es "/path/to/pdf"
 }
 
 const pdfPath = args[0];
-const index = "chile";
+const index = "cl";
 const type = "ppl";
 
 const bulkExec = (bulkCmds, callback) => {
@@ -42,15 +43,39 @@ const createIndex = async () => {
     }
 }
 
+const analyze = async (name) => {
+    try {
+        let response = await client.indices.analyze({
+            index: "test",
+            body: {
+                "analyzer": "cl_analyzer",
+                "text": name
+            }
+        });
+        return response;
+    } catch (error) {
+        console.error('error: ' + error.message)
+    }
+}
+
 const run = async () => {
     await setup();
     await createIndex();
     const ws = new WritableBulk(bulkExec);
-    const toBulk = new TransformToBulk((doc) =>  {
-        let docJson = JSON.parse(doc)
-        return { _id: docJson.uid }
+    const toBulk = new TransformToBulk((doc) => {
+        return { _id: doc.uid }
     });
-    reader(pdfPath).pipe(toBulk).pipe(ws)
+    reader(pdfPath)
+        .pipe(es.map(async (item, callback) => {
+            let doc = JSON.parse(item)
+            let analyzed_name = await analyze(doc.nom);
+            doc.cnt = analyzed_name.body.tokens.length;
+            doc.ap1 = analyzed_name.body.tokens[0].token;
+            doc.ap2 = analyzed_name.body.tokens[1].token;
+            callback(null, doc);
+        }))
+        .pipe(toBulk)
+        .pipe(ws)
         .on('finish', () => {
             console.log('Fin :)');
         }).on('error', error => {

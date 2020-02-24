@@ -7,6 +7,7 @@ const WritableBulk = require('elasticsearch-streams').WritableBulk;
 const TransformToBulk = require('elasticsearch-streams').TransformToBulk;
 const reader = require('../lib/reader');
 const args = process.argv.slice(2);
+const es = require('event-stream');
 
 if (args.length !== 1) {
     console.error(`
@@ -27,7 +28,7 @@ const getFiles = async (directoryPath) => {
         .map(name => path.join(directoryPath, name));
 }
 
-const index = "chile";
+const index = "servel";
 const type = "ppl";
 
 const bulkExec = (bulkCmds, callback) => {
@@ -52,16 +53,29 @@ const createIndex = async () => {
     }
 }
 
+const split = (name) => {
+    name = name.replace(/del|de|la|las|mc|y/g, '');
+    return name.split(" ");
+}
+
 const processFile = async (pdfPath) => {
 
     const ws = new WritableBulk(bulkExec);
     const toBulk = new TransformToBulk((doc) =>  {
-        let docJson = JSON.parse(doc)
-        return { _id: docJson.uid }
+        return { _id: doc.uid }
     });
 
     return new Promise((resolve, reject) => {
-        reader(pdfPath).pipe(toBulk).pipe(ws)
+        reader(pdfPath)
+            .pipe(es.mapSync(item => {
+                let doc = JSON.parse(item)
+                let words = split(doc.nom);
+                doc.cnt = words.length;
+                doc.ap1 = words[0];
+                doc.ap2 = words[1];
+                return doc;
+            }))
+            .pipe(toBulk).pipe(ws)
             .on('finish', () => {
                 console.log(`archivo ${pdfPath} procesado`);
                 resolve();
@@ -78,9 +92,12 @@ run = async (pathToPdfFolfer) => {
     await createIndex();
 
     const files = await getFiles(pathToPdfFolfer);
+    const countFiles = files.length;
     let currentFile = null;
+    let count = 0;
     while (currentFile = files.pop()) {
-        console.log(`procesando archivo ${currentFile}`);
+        count++;
+        console.log(`procesando archivo ${currentFile} ${count}/${countFiles}`);
         await processFile(currentFile);
     }
     console.log('Fin :)')

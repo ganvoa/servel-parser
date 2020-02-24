@@ -18,7 +18,7 @@ node examples/es "/path/to/pdf"
 }
 
 const pdfPath = args[0];
-const index = "cl";
+const index = "servel";
 const type = "ppl";
 
 const bulkExec = (bulkCmds, callback) => {

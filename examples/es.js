@@ -43,19 +43,9 @@ const createIndex = async () => {
     }
 }
 
-const analyze = async (name) => {
-    try {
-        let response = await client.indices.analyze({
-            index: "test",
-            body: {
-                "analyzer": "cl_analyzer",
-                "text": name
-            }
-        });
-        return response;
-    } catch (error) {
-        console.error('error: ' + error.message)
-    }
+const split = (name) => {
+    name = name.replace(/del|de|la|las|mc|y/gi, '');
+    return name.split(" ");
 }
 
 const run = async () => {
@@ -66,13 +56,13 @@ const run = async () => {
         return { _id: doc.uid }
     });
     reader(pdfPath)
-        .pipe(es.map(async (item, callback) => {
+        .pipe(es.mapSync(item => {
             let doc = JSON.parse(item)
-            let analyzed_name = await analyze(doc.nom);
-            doc.cnt = analyzed_name.body.tokens.length;
-            doc.ap1 = analyzed_name.body.tokens[0].token;
-            doc.ap2 = analyzed_name.body.tokens[1].token;
-            callback(null, doc);
+            let words = split(doc.nom);
+            doc.cnt = words.length;
+            doc.ap1 = words[0];
+            doc.ap2 = words[1];
+            return doc;
         }))
         .pipe(toBulk)
         .pipe(ws)

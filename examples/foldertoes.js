@@ -54,7 +54,7 @@ const createIndex = async () => {
 }
 
 const split = (name) => {
-    name = name.replace(/del|de|la|las|mc|y/g, '');
+    name = name.replace(/del|de|la|las|mc|y/gi, '');
     return name.split(" ");
 }
 

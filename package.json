@@ -9,6 +9,6 @@
     "elasticsearch": "^16.6.0",
     "elasticsearch-streams": "0.0.10",
     "event-stream": "^4.0.1",
-    "pdfjs-dist": "^1.7.341"
+    "pdfjs-dist": "^3.2.146"
   }
 }
